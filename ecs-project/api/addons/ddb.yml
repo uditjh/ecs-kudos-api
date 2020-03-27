@@ -1,0 +1,17 @@
+MyTable:
+  Type: AWS::DynamoDB::Table
+  Properties: 
+    TableName: !Sub ${Project}-${Env}-${App}-mytable
+    AttributeDefinitions: 
+      - AttributeName: "User"
+        AttributeType: "S"
+      - AttributeName: "Time"
+        AttributeType: "N"
+    KeySchema: 
+      - AttributeName: "User"
+        KeyType: "HASH"
+      - AttributeName: "Time"
+        KeyType: "RANGE"
+    ProvisionedThroughput: 
+      ReadCapacityUnits: 5
+      WriteCapacityUnits: 5
