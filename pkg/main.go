@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"os"
 
+	"runtime"
+	"time"
+
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/google/go-github/v29/github"
 	"github.com/julienschmidt/httprouter"
@@ -109,6 +112,29 @@ func HealthCheck(w http.ResponseWriter, req *http.Request, ps httprouter.Params)
 	w.WriteHeader(http.StatusOK)
 }
 
+// Stress will just create stress for a time window
+func Stress(w http.ResponseWriter, req *http.Request, ps httprouter.Params){
+	log.Println("...Inducing CPU Stress...!")
+	w.WriteHeader(http.StatusOK)
+	done := make(chan int)
+
+	for i := 0; i < runtime.NumCPU(); i++ {
+    	go func() {
+        	for {
+            	select {
+            	case <-done:
+                	return
+            	default:
+            	}
+        	}
+    	}()
+	}
+
+	time.Sleep(time.Second * 10)
+	close(done)
+
+}
+
 func main() {
 
 	router := httprouter.New()
@@ -116,6 +142,9 @@ func main() {
 	// Webhooks endpoint
 	router.POST("/api/contribution/gh", CreateContribution)
 	router.GET("/api/kudos/:user", GetKudosForUser)
+	
+	//Induce Stress
+	router.GET("/api/stress/", Stress)
 
 	// Health Check
 	router.GET("/", HealthCheck)
